@@ -12,6 +12,8 @@ using Microsoft.Extensions.Hosting;
 using Microsoft.Extensions.Logging;
 using Microsoft.EntityFrameworkCore;
 using instrumentos_api.Data;
+using instrumentos_api.Services;
+using instrumentos_api.Middleware;
 
 namespace instrumentos_api
 {
@@ -30,8 +32,9 @@ namespace instrumentos_api
             services.AddCors();
             services.AddControllers();
 
-            services.AddDbContext<instrumentos_apiContext>(options =>
+            services.AddDbContext<InstrumentosApiContext>(options =>
                     options.UseSqlServer(Configuration.GetConnectionString("instrumentos_apiContext")));
+            IoC.AddDependency(services);
         }
 
         // This method gets called by the runtime. Use this method to configure the HTTP request pipeline.

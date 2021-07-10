@@ -7,9 +7,9 @@ using instrumentos_api.Models;
 
 namespace instrumentos_api.Data
 {
-    public class instrumentos_apiContext : DbContext
+    public class InstrumentosApiContext : DbContext
     {
-        public instrumentos_apiContext (DbContextOptions<instrumentos_apiContext> options)
+        public InstrumentosApiContext(DbContextOptions<InstrumentosApiContext> options)
             : base(options)
         {
         }

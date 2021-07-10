@@ -21,5 +21,10 @@ namespace instrumentos_api.Models
 
         [Column("cantidad_vendida")]
         public int CantidadVendida { get; set; }
+
+        public static implicit operator List<object>(InstrumentoEntity v)
+        {
+            throw new NotImplementedException();
+        }
     }
 }

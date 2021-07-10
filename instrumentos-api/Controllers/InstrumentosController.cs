@@ -9,6 +9,7 @@ using instrumentos_api.Data;
 using instrumentos_api.Models;
 using System.Threading;
 using System.IO;
+using instrumentos_api.Services;
 
 namespace instrumentos_api.Controllers
 {
@@ -16,32 +17,33 @@ namespace instrumentos_api.Controllers
     [ApiController]
     public class InstrumentosController : ControllerBase
     {
-        private readonly instrumentos_apiContext _context;
+        private readonly IInstrumentoService _instrumentoService;
 
-        public InstrumentosController(instrumentos_apiContext context)
+        public InstrumentosController(IInstrumentoService instrumentoService)
         {
-            _context = context;
+            _instrumentoService = instrumentoService;
         }
 
         // GET: api/Instrumentos
         [HttpGet]
-        public async Task<ActionResult<IEnumerable<InstrumentoEntity>>> GetInstrumento()
+        public async Task<IActionResult> GetInstrumento()
         {
-            return await _context.Instrumento.ToListAsync();
+            var instrumentos = await _instrumentoService.GetInstrumentos();
+            return Ok(instrumentos);
         }
 
         // GET: api/Instrumentos/5
         [HttpGet("{id}")]
-        public async Task<ActionResult<InstrumentoEntity>> GetInstrumento(int id)
+        public async Task<IActionResult> GetInstrumento(int id)
         {
-            var instrumento = await _context.Instrumento.FindAsync(id);
+            var instrumento = await _instrumentoService.GetInstrumentoById(id);
 
             if (instrumento == null)
             {
                 return NotFound();
             }
 
-            return instrumento;
+            return Ok(instrumento);
         }
 
         // PUT: api/Instrumentos/5
@@ -55,11 +57,9 @@ namespace instrumentos_api.Controllers
                 return BadRequest();
             }
 
-            _context.Entry(instrumento).State = EntityState.Modified;
-
             try
             {
-                await _context.SaveChangesAsync();
+               await _instrumentoService.UpdateInstrumento(instrumento, id);
             }
             catch (DbUpdateConcurrencyException)
             {
@@ -80,28 +80,31 @@ namespace instrumentos_api.Controllers
         // To protect from overposting attacks, enable the specific properties you want to bind to, for
         // more details, see https://go.microsoft.com/fwlink/?linkid=2123754.
         [HttpPost]
-        public async Task<ActionResult<InstrumentoEntity>> PostInstrumento(InstrumentoEntity instrumento)
+        public async Task<IActionResult> PostInstrumento([FromBody] InstrumentoEntity instrumento)
         {
-            _context.Instrumento.Add(instrumento);
-            await _context.SaveChangesAsync();
+            if (instrumento == null)
+            {
+                return BadRequest();
+            }
+   
+            await _instrumentoService.SaveInstrumento(instrumento);
 
-            return CreatedAtAction("GetInstrumento", new { id = instrumento.Id }, instrumento);
+            return Created("Instrumento creado", instrumento);
         }
 
         // DELETE: api/Instrumentos/5
         [HttpDelete("{id}")]
-        public async Task<ActionResult<InstrumentoEntity>> DeleteInstrumento(int id)
+        public async Task<IActionResult> DeleteInstrumento(int id)
         {
-            var instrumento = await _context.Instrumento.FindAsync(id);
+            var instrumento = await _instrumentoService.GetInstrumentoById(id);
+
             if (instrumento == null)
             {
                 return NotFound();
             }
 
-            _context.Instrumento.Remove(instrumento);
-            await _context.SaveChangesAsync();
-
-            return instrumento;
+            await _instrumentoService.DeleteInstrumento(id);
+            return Ok("Instrumento eliminado");
         }
         // UPLOAD: api/Instrumentos/upload
         [HttpPost]
@@ -138,7 +141,7 @@ namespace instrumentos_api.Controllers
 
         private bool InstrumentoExists(int id)
         {
-            return _context.Instrumento.Any(e => e.Id == id);
+            return _instrumentoService.InstrumentoExist(id);
         }
 
         private async Task<string> WriteImage(IFormFile file)
